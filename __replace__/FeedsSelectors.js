@@ -3,7 +3,7 @@ import FeedsCheckboxPanel from '../../../theme/plugins/Feeds/FeedsCheckboxPanel'
 
 const FeedsSelectors = props => {
   return (
-    <FeedsSelectors {...props} />
+    <FeedsCheckboxPanel {...props} />
   );
 };
 
