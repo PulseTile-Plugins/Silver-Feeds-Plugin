@@ -17,25 +17,14 @@ export const fetchFeedsSuccess = createAction(FETCH_FEEDS_SUCCESS);
 export const fetchFeedsFailure = createAction(FETCH_FEEDS_FAILURE);
 export const fetchFeedsUpdateRequest = createAction(FETCH_FEEDS_UPDATE_REQUEST);
 
-// export const fetchFeedsEpic = (action$, store) =>
-//   action$.ofType(FETCH_FEEDS_REQUEST)
-//     .mergeMap(({ payload }) =>
-//       ajax.getJSON(`${usersUrls.FEEDS}`, {})
-//         .map((response) => {
-//           return fetchFeedsSuccess({ feeds: response })
-//         })
-//     );
-
 export const fetchFeedsEpic = (action$, store) =>
-    action$.ofType(FETCH_FEEDS_REQUEST)
-        .mergeMap(({ payload }) =>
-            ajax.getJSON(`http://dev.ripple.foundation:8000/api/feeds`, {
-                Authorization: 'Bearer '+testConstants.token
-            })
-                .map((response) => {
-                    return fetchFeedsSuccess({ feeds: response })
-                })
-        );
+  action$.ofType(FETCH_FEEDS_REQUEST)
+    .mergeMap(({ payload }) =>
+      ajax.getJSON(`${usersUrls.FEEDS}`, {})
+        .map((response) => {
+          return fetchFeedsSuccess({ feeds: response })
+        })
+    );
 
 export const fetchFeedsUpdateEpic = (action$, store) =>
   action$.ofType(FETCH_FEEDS_UPDATE_REQUEST)
