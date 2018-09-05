@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Row, Col } from 'react-bootstrap';
 import classNames from 'classnames';
 import _ from 'lodash/fp';
+import { get } from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { lifecycle, compose } from 'recompose';
@@ -22,6 +23,8 @@ import { feedsSelector, feedsDetailSelector, feedPanelFormSelector, feedCreateFo
 import { themeClientUrls } from '../../config/clientUrls';
 import FeedsDetail from './FeedsDetail/FeedsDetail';
 import { checkIsValidateForm, operationsOnCollection } from '../../../../utils/plugin-helpers.utils';
+import { themeConfigs } from '../../../../themes.config';
+import { isButtonVisible } from '../../../../utils/themeSettings-helper';
 
 const FEEDS_MAIN = 'feedsMain';
 const FEEDS_DETAIL = 'feedsDetail';
@@ -54,7 +57,7 @@ export default class Feeds extends PureComponent {
     columnNameSortBy: valuesNames.NAME,
     sortingOrder: 'asc',
     expandedPanel: 'all',
-    isBtnCreateVisible: true,
+    isBtnCreateVisible: false,
     isBtnExpandVisible: false,
     isAllPanelsVisible: false,
     isDetailPanelVisible: false,
@@ -68,16 +71,36 @@ export default class Feeds extends PureComponent {
 
   componentWillReceiveProps() {
     const sourceId = this.context.router.route.match.params.sourceId;
-
-    //TODO should be implemented common function, and the state stored in the store Redux
+    const hiddenButtons = get(themeConfigs, 'buttonsToHide.feeds', []);
     if (this.context.router.history.location.pathname === `${themeClientUrls.USER_PROFILE}/${themeClientUrls.FEEDS}/${sourceId}` && sourceId !== undefined) {
-      this.setState({ isSecondPanel: true, isDetailPanelVisible: true, isBtnExpandVisible: true, isBtnCreateVisible: true, isCreatePanelVisible: false })
+      this.setState({
+        isSecondPanel: true,
+        isDetailPanelVisible: true,
+        isBtnExpandVisible: true,
+        isBtnCreateVisible: isButtonVisible(hiddenButtons, 'create', true),
+        isCreatePanelVisible: false
+      })
     }
     if (this.context.router.history.location.pathname === `${themeClientUrls.USER_PROFILE}/${themeClientUrls.FEEDS}/create`) {
-      this.setState({ isSecondPanel: true, isBtnExpandVisible: true, isBtnCreateVisible: false, isCreatePanelVisible: true, openedPanel: FEEDS_CREATE, isDetailPanelVisible: false })
+      this.setState({
+        isSecondPanel: true,
+        isBtnExpandVisible: true,
+        isBtnCreateVisible: isButtonVisible(hiddenButtons, 'create', false),
+        isCreatePanelVisible: true,
+        openedPanel: FEEDS_CREATE,
+        isDetailPanelVisible: false
+      })
     }
     if (this.context.router.history.location.pathname === `${themeClientUrls.USER_PROFILE}/${themeClientUrls.FEEDS}`) {
-      this.setState({ isSecondPanel: false, isBtnExpandVisible: false, isBtnCreateVisible: true, isCreatePanelVisible: false, openedPanel: FEEDS_PANEL, isDetailPanelVisible: false, expandedPanel: 'all' })
+      this.setState({
+        isSecondPanel: false,
+        isBtnExpandVisible: false,
+        isBtnCreateVisible: isButtonVisible(hiddenButtons, 'create', true),
+        isCreatePanelVisible: false,
+        openedPanel: FEEDS_PANEL,
+        isDetailPanelVisible: false,
+        expandedPanel: 'all'
+      })
     }
 
     /* istanbul ignore next */
@@ -106,7 +129,18 @@ export default class Feeds extends PureComponent {
 
   handleDetailFeedsClick = (sourceId) => {
     const { actions } = this.props;
-    this.setState({ isSecondPanel: true, isDetailPanelVisible: true, isBtnExpandVisible: true, isBtnCreateVisible: true, isCreatePanelVisible: false, openedPanel: FEEDS_PANEL, editedPanel: {}, expandedPanel: 'all', isLoading: false });
+    const hiddenButtons = get(themeConfigs, 'buttonsToHide.feeds', []);
+    this.setState({
+      isSecondPanel: true,
+      isDetailPanelVisible: true,
+      isBtnExpandVisible: true,
+      isBtnCreateVisible: isButtonVisible(hiddenButtons, 'create', true),
+      isCreatePanelVisible: false,
+      openedPanel: FEEDS_PANEL,
+      editedPanel: {},
+      expandedPanel: 'all',
+      isLoading: false
+    });
     actions.fetchFeedsDetailRequest({ sourceId });
     // this.context.router.history.push(`${themeClientUrls.USER_PROFILE}/${themeClientUrls.FEEDS}/${sourceId}`);
   };
@@ -206,9 +240,6 @@ export default class Feeds extends PureComponent {
 
   render() {
 
-    console.log('--------------------------------------------------------------------------------------');
-
-
     const { selectedColumns, columnNameSortBy, sortingOrder, isSecondPanel, isDetailPanelVisible, isBtnExpandVisible, expandedPanel, openedPanel, isBtnCreateVisible, isCreatePanelVisible, editedPanel, offset, isSubmit, isLoading } = this.state;
     const { feeds, feedsDetail, feedFormState, feedCreateFormState } = this.props;
     const isPanelDetails = (expandedPanel === FEEDS_DETAIL || expandedPanel === FEEDS_PANEL);
@@ -216,6 +247,7 @@ export default class Feeds extends PureComponent {
     const isPanelCreate = (expandedPanel === FEEDS_CREATE);
     const columnsToShowConfig = columnsConfig.filter(columnConfig => selectedColumns[columnConfig.key]);
     const filteredFeeds = this.formToShowCollection(feeds);
+    const hiddenButtons = get(themeConfigs, 'buttonsToHide.feeds', []);
 
     let sourceId;
     if (isDetailPanelVisible && !_.isEmpty(feedsDetail)) {
@@ -275,6 +307,7 @@ export default class Feeds extends PureComponent {
           {(expandedPanel === 'all' || isPanelCreate) && isCreatePanelVisible && !isDetailPanelVisible ? <Col xs={12} className={classNames({ 'col-panel-details': isSecondPanel })}>
             <PluginCreate
               onExpand={this.handleExpand}
+              headingName="feeds"
               name={FEEDS_CREATE}
               openedPanel={openedPanel}
               onShow={this.handleShow}
@@ -284,6 +317,7 @@ export default class Feeds extends PureComponent {
               formValues={feedCreateFormState.values}
               onCancel={this.handleCreateCancel}
               isCreatePanelVisible={isCreatePanelVisible}
+              isCreationPermitted={isButtonVisible(hiddenButtons, 'create', true)}
               componentForm={
                 <FeedsCreateForm isSubmit={isSubmit} />
               }

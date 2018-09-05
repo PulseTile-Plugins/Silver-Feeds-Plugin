@@ -1,9 +1,12 @@
 import React, { PureComponent } from 'react';
+import { get } from 'lodash';
 
 import PluginDetailPanel from '../../../../plugin-page-component/PluginDetailPanel'
 import FeedsDetailForm from './FeedsDetailForm'
 import { getDDMMMYYYY } from '../../../../../utils/time-helpers.utils';
 import { valuesNames, valuesLabels } from '../forms.config';
+import { themeConfigs } from '../../../../../themes.config';
+import { isButtonVisible } from '../../../../../utils/themeSettings-helper';
 
 const FEEDS_PANEL = 'feedsPanel';
 
@@ -13,6 +16,8 @@ export default class FeedsDetail extends PureComponent {
     let { detail } = this.props;
     detail = detail || {};
     const dateCreated = getDDMMMYYYY(detail[valuesNames.DATE_CREATED]);
+
+    const hiddenButtons = get(themeConfigs, 'buttonsToHide.feeds', []);
 
     return (
       <div className="section-detail">
@@ -29,6 +34,7 @@ export default class FeedsDetail extends PureComponent {
             onSaveSettings={onSaveSettings}
             formValues={feedFormValues}
             isBtnShowPanel={false}
+            isEditButton={isButtonVisible(hiddenButtons, 'edit', true)}
           >
             <div className="panel-body-inner">
               <div className="form">
