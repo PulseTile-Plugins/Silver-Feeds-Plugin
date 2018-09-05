@@ -2,11 +2,16 @@ import React from 'react';
 import Enzyme, { shallow } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-15';
 import configureStore from 'redux-mock-store';
+import { get } from 'lodash';
 
 import Feeds from '../Feeds';
 import { valuesNames } from '../forms.config';
+import { themeConfigs } from '../../../../../themes.config';
+import { isButtonVisible } from '../../../../../utils/themeSettings-helper';
 
 Enzyme.configure({ adapter: new Adapter() });
+
+const hiddenButtons = get(themeConfigs, 'buttonsToHide.feeds', []);
 
 // frequently used variables
 const userId = '9999999000';
@@ -135,7 +140,17 @@ describe('Component <Feeds />', () => {
 
     component.instance().handleDetailFeedsClick('065d85e3-3cd5-4604-bb94-5685fffb193d');
     const componentStateAfterMethod = component.state();
-    component.setState({ isSecondPanel: true, isDetailPanelVisible: true, isBtnExpandVisible: true, isBtnCreateVisible: true, isCreatePanelVisible: false, openedPanel: 'feedsPanel', editedPanel: {}, expandedPanel: 'all', isLoading: false });
+    component.setState({
+      isSecondPanel: true,
+      isDetailPanelVisible: true,
+      isBtnExpandVisible: true,
+      isBtnCreateVisible: isButtonVisible(hiddenButtons, 'create', true),
+      isCreatePanelVisible: false,
+      openedPanel: 'feedsPanel',
+      editedPanel: {},
+      expandedPanel: 'all',
+      isLoading: false
+    });
     const componentStateAfterSetState = component.state();
 
     expect(componentStateAfterMethod).toEqual(componentStateAfterSetState);
