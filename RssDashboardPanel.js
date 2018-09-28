@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import SimpleDashboardPanel from '../../../pages/PatientsSummary/SimpleDashboardPanel';
 import { rssFeedsSelector } from './rss-feeds';
 import { fetchGetRssFeedsRequest } from './ducks/fetch-get-rss-feeds.duck';
-import imgRSSFeeds from '../../../../assets/images/patients-summary/rss.jpg';
+import { imageSource } from './ImageSource';
 
 const mapDispatchToProps = dispatch => ({ actions: bindActionCreators({ fetchGetRssFeedsRequest }, dispatch) });
 
@@ -54,9 +54,9 @@ export default class RssDashboardPanel extends PureComponent {
     const items = this.getRssItems(rssFeeds);
     let srcPrevirew;
     if (!rssFeeds[rssFeedName]) {
-      srcPrevirew = imgRSSFeeds;
+      srcPrevirew = imageSource;
     } else {
-      srcPrevirew = items[indexItemForPreview].thumbnail ? items[indexItemForPreview].thumbnail : imgRSSFeeds;
+      srcPrevirew = items[indexItemForPreview].thumbnail ? items[indexItemForPreview].thumbnail : imageSource;
     }
     return (
       <SimpleDashboardPanel
