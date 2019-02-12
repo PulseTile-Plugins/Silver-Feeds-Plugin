@@ -14,7 +14,7 @@ export const fetchGetRssFeedsSuccess = createAction(FETCH_GET_RSS_FEEDS_SUCCESS)
 export const fetchGetRssFeedsFailure = createAction(FETCH_GET_RSS_FEEDS_FAILURE);
 
 export const fetchGetRssFeedsEpic = (action$, store) =>
-action$.ofType(FETCH_GET_RSS_FEEDS_REQUEST)
+  action$.ofType(FETCH_GET_RSS_FEEDS_REQUEST)
     .mergeMap(async res  => {
     const name = get(res, 'payload.rssFeedName', null);
     const feedsUrl = get(res, 'payload.rssFeedUrl', null);
@@ -25,20 +25,20 @@ action$.ofType(FETCH_GET_RSS_FEEDS_REQUEST)
         .then(responseData => getRssFeedsListFromXML(responseData))
         .then(res => res);
     if (Object.values(responseObject).length > 0) {
-        return fetchGetRssFeedsSuccess({
-            rssFeedName: name,
-            feeds: responseObject.slice(0, 4),
-        });
+      return fetchGetRssFeedsSuccess({
+        rssFeedName: name,
+        feeds: responseObject.slice(0, 4),
+      });
     }
     return fetchGetRssFeedsFailure();
 });
 
 export default function reducer(rssFeeds = {}, action) {
-    switch (action.type) {
-        case FETCH_GET_RSS_FEEDS_SUCCESS:
-            return _.set(action.payload.rssFeedName, action.payload.feeds, rssFeeds);
-        default:
-            return rssFeeds;
-    }
+  switch (action.type) {
+    case FETCH_GET_RSS_FEEDS_SUCCESS:
+      return _.set(action.payload.rssFeedName, action.payload.feeds, rssFeeds);
+    default:
+      return rssFeeds;
+  }
 }
 
