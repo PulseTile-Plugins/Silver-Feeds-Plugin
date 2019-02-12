@@ -1,8 +1,9 @@
 import _ from 'lodash/fp';
-import { Observable } from 'rxjs';
 import { createAction } from 'redux-actions';
 import { get } from 'lodash';
 import { getRssFeedsListFromXML } from '../../../../../utils/rss-helpers';
+
+const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
 
 export const FETCH_GET_RSS_FEEDS_REQUEST = 'FETCH_GET_RSS_FEEDS_REQUEST';
 export const FETCH_GET_RSS_FEEDS_SUCCESS = 'FETCH_GET_RSS_FEEDS_SUCCESS';
@@ -14,31 +15,23 @@ export const fetchGetRssFeedsFailure = createAction(FETCH_GET_RSS_FEEDS_FAILURE)
 
 export const fetchGetRssFeedsEpic = (action$, store) =>
   action$.ofType(FETCH_GET_RSS_FEEDS_REQUEST)
-    .mergeMap( res  => {
-      const name = get(res, 'payload.rssFeedName', null);
-      const url = get(res, 'payload.rssFeedUrl', null);
-      return Observable.ajax({
-        url: 'https://cors-proxy.htmldriven.com/?url=' + url,
-          crossDomain: true,
-          responseType: 'application/rss+xml',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-          .map(response => {
-            const responseString = get(response, 'response', null);
-            const responseObject = JSON.parse(responseString);
-            if (get(responseObject, 'success', false)) {
-              const rss = get(responseObject, 'body', null);
-              const parser = new DOMParser();
-              const xmlDoc = parser.parseFromString(rss, 'text/xml');
-              return fetchGetRssFeedsSuccess({
-                rssFeedName: name,
-                feeds: getRssFeedsListFromXML(xmlDoc),
-              })
-            }
-            return fetchGetRssFeedsFailure();
-          });
-        }
-    );
+    .mergeMap(async res  => {
+    const name = get(res, 'payload.rssFeedName', null);
+    const feedsUrl = get(res, 'payload.rssFeedUrl', null);
+    const url = CORS_PROXY + feedsUrl.replace("http://", "").replace("https://", "");
+    const responseObject = await fetch(url)
+        .then(res => res.text())
+        .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+        .then(responseData => getRssFeedsListFromXML(responseData))
+        .then(res => res);
+    if (Object.values(responseObject).length > 0) {
+      return fetchGetRssFeedsSuccess({
+        rssFeedName: name,
+        feeds: responseObject.slice(0, 4),
+      });
+    }
+    return fetchGetRssFeedsFailure();
+});
 
 export default function reducer(rssFeeds = {}, action) {
   switch (action.type) {
